@@ -5,6 +5,7 @@
  * @format
  */
 
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import React from 'react';
 import type {PropsWithChildren} from 'react';
 import {
@@ -24,6 +25,14 @@ import {
   LearnMoreLinks,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+
+import McIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Fa6 from 'react-native-vector-icons/FontAwesome6';
+import {NavigationContainer} from '@react-navigation/native';
+
+// pages
+import SearchPage from './pages/Search.tsx';
+// <pages
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -63,38 +72,51 @@ function App(): React.JSX.Element {
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <NavigationContainer>
+      <SearchPage />
+    </NavigationContainer>
   );
 }
+// function App(): React.JSX.Element {
+//   const isDarkMode = useColorScheme() === 'dark';
+
+//   const backgroundStyle = {
+//     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+//   };
+
+//   return (
+//     <SafeAreaView style={backgroundStyle}>
+//       <StatusBar
+//         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+//         backgroundColor={backgroundStyle.backgroundColor}
+//       />
+//       <ScrollView
+//         contentInsetAdjustmentBehavior="automatic"
+//         style={backgroundStyle}>
+//         <Header />
+//         <View
+//           style={{
+//             backgroundColor: isDarkMode ? Colors.black : Colors.white,
+//           }}>
+//           <Section title="Step One">
+//             Edit <Text style={styles.highlight}>App.tsx</Text> to change this
+//             screen and then come back to see your edits.
+//           </Section>
+//           <Section title="See Your Changes">
+//             <ReloadInstructions />
+//           </Section>
+//           <Section title="Debug">
+//             <DebugInstructions />
+//           </Section>
+//           <Section title="Learn More">
+//             Read the docs to discover what to do next:
+//           </Section>
+//           <LearnMoreLinks />
+//         </View>
+//       </ScrollView>
+//     </SafeAreaView>
+//   );
+// }
 
 const styles = StyleSheet.create({
   sectionContainer: {
@@ -116,3 +138,51 @@ const styles = StyleSheet.create({
 });
 
 export default App;
+
+function TabNav() {
+  const Footer = createBottomTabNavigator();
+  return (
+    <Footer.Navigator>
+      <Footer.Screen
+        name="Home"
+        component={Home}
+        options={{
+          tabBarIcon: ({focused, color, size}) => {
+            if (focused) return <McIcon name="home" size={30} />;
+            else return <McIcon name="home-outline" size={30} />;
+          },
+        }}
+      />
+      <Footer.Screen
+        name="Search"
+        component={Search}
+        options={{
+          tabBarIcon: ({focused, color, size}) => {
+            if (focused) return <McIcon name="search-web" size={30} />;
+            else return <McIcon name="search-web" size={30} />;
+          },
+        }}
+      />
+      <Footer.Screen
+        name="Library"
+        component={Library}
+        options={{
+          tabBarIcon: ({focused, color, size}) => {
+            if (focused) return <McIcon name="rss-box" size={30} />;
+            else return <McIcon name="rss" size={30} />;
+          },
+        }}
+      />
+    </Footer.Navigator>
+  );
+}
+
+function Home() {
+  return <Text>Hi</Text>;
+}
+function Search() {
+  return <Text>Search</Text>;
+}
+function Library() {
+  return <Text>Library</Text>;
+}
