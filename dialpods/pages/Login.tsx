@@ -1,4 +1,5 @@
 import {sha256} from 'react-native-sha256';
+import * as Keychain from 'react-native-keychain';
 import React, {useEffect, useState} from 'react';
 import {AsyncRes} from '../logic/types/types';
 import {
@@ -43,27 +44,42 @@ function LoginPage() {
     const res = await kinodeLogin(nodeURL, password);
     setLoading(false);
     console.log('kinode cookie', res);
-    if ('ok' in res) setError('ok!');
-    else setError('error!');
+    if ('ok' in res) saveCoki(res.ok);
+    else
+      setError(
+        'error logging in to your kinode. Check your credentials and try again',
+      );
+  }
+  async function saveCoki(coki: string) {
+    try {
+      await Keychain.setGenericPassword('kinode-cookie', coki);
+      // goto
+    } catch (e) {
+      setError('error saving kinode credentials');
+    }
   }
   return (
     <View>
-      <Text>Login to your Kinode</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="URL"
-        value={nodeURL}
-        onChangeText={setURL}
-        placeholderTextColor="#666"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="password"
-        value={password}
-        secureTextEntry={true}
-        onChangeText={setPassword}
-        placeholderTextColor="#666"
-      />
+      <Text style={styles.title}>Login to your Kinode</Text>
+      <View style={{height: 100}}>
+        <TextInput
+          style={styles.input}
+          placeholder="URL"
+          value={nodeURL}
+          onChangeText={setURL}
+          placeholderTextColor="#666"
+        />
+      </View>
+      <View style={{height: 100}}>
+        <TextInput
+          style={styles.input}
+          placeholder="password"
+          value={password}
+          secureTextEntry={true}
+          onChangeText={setPassword}
+          placeholderTextColor="#666"
+        />
+      </View>
       <Button title="Submit" onPress={submit} />
       {loading && <ActivityIndicator color="#f97316" />}
       {error && <Text style={styles.error}>{error}</Text>}
@@ -74,6 +90,10 @@ function LoginPage() {
 export default LoginPage;
 
 const styles = StyleSheet.create({
+  title: {
+    textAlign: 'center',
+    fontSize: 24,
+  },
   container: {
     flex: 1,
     backgroundColor: 'white',
@@ -100,10 +120,12 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    height: 40,
+    borderColor: 'green',
+    height: 80,
     marginRight: 8,
     padding: 8,
     color: 'black',
+    backgroundColor: 'white',
   },
   resultItem: {
     flexDirection: 'row',

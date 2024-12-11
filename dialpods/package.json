@@ -17,6 +17,7 @@
     "react-native": "0.76.4",
     "react-native-fast-image": "^8.6.3",
     "react-native-html-parser": "^0.1.0",
+    "react-native-keychain": "^9.2.2",
     "react-native-safe-area-context": "^5.0.0",
     "react-native-screens": "^4.3.0",
     "react-native-sha256": "^1.4.10",

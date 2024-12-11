@@ -4,11 +4,12 @@
  *
  * @format
  */
-
+import * as Keychain from 'react-native-keychain';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import type {PropsWithChildren} from 'react';
 import {
+  ActivityIndicator,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -31,8 +32,9 @@ import Fa6 from 'react-native-vector-icons/FontAwesome6';
 import {NavigationContainer} from '@react-navigation/native';
 
 // pages
-import LoginPage from './pages/Login.tsx';
+import LoginPage from './pages/Login2.tsx';
 import SearchPage from './pages/Search.tsx';
+import useUIStore from './logic/store.ts';
 // <pages
 
 type SectionProps = PropsWithChildren<{
@@ -67,16 +69,33 @@ function Section({children, title}: SectionProps): React.JSX.Element {
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+  const [loading, setLoading] = useState(true);
+  const {cookie, setCookie} = useUIStore(state => ({
+    cookie: state.cookie,
+    setCookie: state.setCookie,
+  }));
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+  useEffect(() => {
+    checkCookie();
+  }, []);
 
-  return (
-    <NavigationContainer>
-      <LoginPage />
-    </NavigationContainer>
-  );
+  async function checkCookie() {
+    const creds = await Keychain.getGenericPassword();
+    console.log('keychain creds', creds);
+    if (creds) setCookie(creds.password);
+    setLoading(false);
+  }
+  if (loading) return <ActivityIndicator />;
+  else if (!cookie) return <LoginPage />;
+  else
+    return (
+      <NavigationContainer>
+        <TabNav />
+      </NavigationContainer>
+    );
 }
 // function App(): React.JSX.Element {
 //   const isDarkMode = useColorScheme() === 'dark';
@@ -156,7 +175,7 @@ function TabNav() {
       />
       <Footer.Screen
         name="Search"
-        component={Search}
+        component={SearchPage}
         options={{
           tabBarIcon: ({focused, color, size}) => {
             if (focused) return <McIcon name="search-web" size={30} />;
@@ -180,9 +199,6 @@ function TabNav() {
 
 function Home() {
   return <Text>Hi</Text>;
-}
-function Search() {
-  return <Text>Search</Text>;
 }
 function Library() {
   return <Text>Library</Text>;

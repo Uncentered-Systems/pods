@@ -4,6 +4,8 @@ import {useShallow} from 'zustand/shallow';
 import type {Podcasts} from './types/types';
 
 interface UIState {
+  cookie: string;
+  setCookie: (coki: string) => void;
   subs: Podcasts;
 }
 type ProcessState = {subs: Podcasts};
@@ -33,6 +35,8 @@ type WsMessage =
 const storeInner = create<UIState>()(
   // persist(
   (set, get) => ({
+    cookie: '',
+    setCookie: cookie => set({cookie}),
     subs: {},
   }),
   //     {
