@@ -31,6 +31,7 @@ import Fa6 from 'react-native-vector-icons/FontAwesome6';
 import {NavigationContainer} from '@react-navigation/native';
 
 // pages
+import LoginPage from './pages/Login.tsx';
 import SearchPage from './pages/Search.tsx';
 // <pages
 
@@ -73,7 +74,7 @@ function App(): React.JSX.Element {
 
   return (
     <NavigationContainer>
-      <SearchPage />
+      <LoginPage />
     </NavigationContainer>
   );
 }

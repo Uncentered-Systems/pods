@@ -9,13 +9,13 @@
   env.GREET = "devenv";
 
   # https://devenv.sh/packages/
-  packages = [pkgs.git];
+  packages = with pkgs; [git nodePackages.typescript-language-server];
 
   android = {
     enable = true;
-    platforms.version = ["35"];
+    platforms.version = ["34" "35"];
     reactNative.enable = true;
-    buildTools.version = ["35.0.0"];
+    buildTools.version = ["34.0.0" "35.0.0"];
   };
 
   # https://devenv.sh/languages/
