@@ -32,8 +32,10 @@ import Fa6 from 'react-native-vector-icons/FontAwesome6';
 import {NavigationContainer} from '@react-navigation/native';
 
 // pages
-import LoginPage from './pages/Login2.tsx';
+import LoginPage from './pages/Login.tsx';
+import HomePage from './pages/Home.tsx';
 import SearchPage from './pages/Search.tsx';
+import SettingsPage from './pages/Settings.tsx';
 import useUIStore from './logic/store.ts';
 // <pages
 
@@ -70,9 +72,10 @@ function Section({children, title}: SectionProps): React.JSX.Element {
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const [loading, setLoading] = useState(true);
-  const {cookie, setCookie} = useUIStore(state => ({
+  const {cookie, setCookie, setURL} = useUIStore(state => ({
     cookie: state.cookie,
     setCookie: state.setCookie,
+    setURL: state.setURL,
   }));
 
   const backgroundStyle = {
@@ -85,7 +88,10 @@ function App(): React.JSX.Element {
   async function checkCookie() {
     const creds = await Keychain.getGenericPassword();
     console.log('keychain creds', creds);
-    if (creds) setCookie(creds.password);
+    if (creds) {
+      setCookie(creds.password);
+      setURL(creds.username);
+    }
     setLoading(false);
   }
   if (loading) return <ActivityIndicator />;
@@ -165,7 +171,7 @@ function TabNav() {
     <Footer.Navigator>
       <Footer.Screen
         name="Home"
-        component={Home}
+        component={HomePage}
         options={{
           tabBarIcon: ({focused, color, size}) => {
             if (focused) return <McIcon name="home" size={30} />;
@@ -193,13 +199,20 @@ function TabNav() {
           },
         }}
       />
+      <Footer.Screen
+        name="Settings"
+        component={SettingsPage}
+        options={{
+          tabBarIcon: ({focused, color, size}) => {
+            if (focused) return <McIcon name="cog" size={30} />;
+            else return <McIcon name="cog-outline" size={30} />;
+          },
+        }}
+      />
     </Footer.Navigator>
   );
 }
 
-function Home() {
-  return <Text>Hi</Text>;
-}
 function Library() {
   return <Text>Library</Text>;
 }

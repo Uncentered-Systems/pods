@@ -1,21 +1,24 @@
-import {sha256} from 'react-native-sha256';
+import React, {useState} from 'react';
 import * as Keychain from 'react-native-keychain';
-import React, {useEffect, useState} from 'react';
 import {AsyncRes} from '../logic/types/types';
 import {
   View,
   Text,
   TextInput,
-  Image,
   TouchableOpacity,
+  Image,
   StyleSheet,
-  ActivityIndicator,
-  ScrollView,
-  Button,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
+import {sha256} from 'react-native-sha256';
+import {ActivityIndicator} from 'react-native';
 async function doHash(s: string) {
   return sha256(s);
 }
+
 export async function kinodeLogin(url: string, pw: string): AsyncRes<string> {
   const hash = await doHash(pw);
   const opts = {
@@ -32,13 +35,21 @@ export async function kinodeLogin(url: string, pw: string): AsyncRes<string> {
   if (!cookie) return {error: 'Kinode login failed'};
   return {ok: cookie};
 }
-
-function LoginPage() {
-  const [nodeURL, setURL] = useState('https://kino.yago.one');
+function LoginScreen() {
+  const [nodeURL, setURL] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  async function submit() {
+  async function saveCoki(coki: string) {
+    try {
+      await Keychain.setGenericPassword(nodeURL, coki);
+      // goto
+    } catch (e) {
+      setError('error saving kinode credentials');
+    }
+  }
+
+  async function handleSubmit() {
     setLoading(true);
     setError('');
     const res = await kinodeLogin(nodeURL, password);
@@ -50,109 +61,99 @@ function LoginPage() {
         'error logging in to your kinode. Check your credentials and try again',
       );
   }
-  async function saveCoki(coki: string) {
-    try {
-      await Keychain.setGenericPassword('kinode-cookie', coki);
-      // goto
-    } catch (e) {
-      setError('error saving kinode credentials');
-    }
-  }
+
   return (
-    <View>
-      <Text style={styles.title}>Login to your Kinode</Text>
-      <View style={{height: 100}}>
-        <TextInput
-          style={styles.input}
-          placeholder="URL"
-          value={nodeURL}
-          onChangeText={setURL}
-          placeholderTextColor="#666"
-        />
-      </View>
-      <View style={{height: 100}}>
-        <TextInput
-          style={styles.input}
-          placeholder="password"
-          value={password}
-          secureTextEntry={true}
-          onChangeText={setPassword}
-          placeholderTextColor="#666"
-        />
-      </View>
-      <Button title="Submit" onPress={submit} />
-      {loading && <ActivityIndicator color="#f97316" />}
-      {error && <Text style={styles.error}>{error}</Text>}
-    </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <View style={styles.logoContainer}>
+          <Image
+            // source={require('./path-to-your-logo.png')} // Replace with your logo path
+            src="https://cdn.prod.website-files.com/672cc4c2f95a65f9585e8f5d/672cc4c2f95a65f9585e8f78_logo.svg"
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Kinode URL"
+            value={nodeURL}
+            onChangeText={setURL}
+            keyboardType="url"
+            autoCapitalize="none"
+            autoComplete="url"
+            placeholderTextColor="#666"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            placeholderTextColor="#666"
+          />
+
+          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+            <Text style={styles.buttonText}>Sign In</Text>
+          </TouchableOpacity>
+          {loading && <ActivityIndicator color="#f97316" />}
+          {error && <Text style={styles.error}>{error}</Text>}
+        </View>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
-export default LoginPage;
-
 const styles = StyleSheet.create({
-  title: {
-    textAlign: 'center',
-    fontSize: 24,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  navbar: {
-    padding: 16,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
-  },
-  navbarText: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  resultContainer: {
-    flex: 1,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'black',
-  },
-  input: {
-    flex: 1,
-    borderColor: 'green',
-    height: 80,
-    marginRight: 8,
-    padding: 8,
-    color: 'black',
-    backgroundColor: 'white',
-  },
-  resultItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: '#d4d4d4',
-    marginBottom: 1,
-  },
-  resultImage: {
-    width: 32,
-    height: 32,
-    marginRight: 16,
-  },
-  resultName: {
-    flex: 1,
-    color: 'black',
-  },
-  saveButton: {
-    backgroundColor: '#f97316',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 4,
-  },
-  saveButtonText: {
-    color: 'white',
-  },
   error: {
     color: 'red',
   },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+  },
+  logoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 150,
+    height: 150,
+  },
+  inputContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    marginBottom: 100,
+  },
+  input: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 15,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    color: 'black',
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    padding: 15,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
+
+export default LoginScreen;

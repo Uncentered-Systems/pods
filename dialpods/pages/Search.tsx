@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-// import { corsProxy, saveFeed } from '../logic/api';
 import {
   parseHTMLRes,
   parseRSSFeed,
@@ -19,8 +18,12 @@ import {
 import useUIStore from '../logic/store';
 import type {SearchResult} from '../logic/types/types';
 import {Button} from 'react-native';
+import {saveFeed} from '../logic/api';
 
 function SearchScreen() {
+  const {sync} = useUIStore(state => ({
+    sync: state.sync,
+  }));
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState('https://www.youtube.com/@bookclubradio');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -52,19 +55,16 @@ function SearchScreen() {
   async function handleYouTube(url: string) {
     console.log('handling youtube', url);
     // if (!url.search) {
-    // const res = await corsProxy(url);
     console.log('fetching', url);
     const res = await fetch(url);
-    console.log('youtube response', res);
     const txt = await res.text();
-    console.log('youtube text', txt);
     const doc = await parseHTMLRes(txt);
-    console.log('doc', doc);
-    console.log('head', doc.head);
-    const mparsed = parseYoutubeChannel(doc.head);
+    const head = doc.documentElement.querySelector('head');
+    if (!head) return handleError('', 'no head');
+    const mparsed = parseYoutubeChannel(head);
     console.log(mparsed, 'mparsed');
-    // if ('error' in mparsed) handleError(url.toString(), mparsed.error);
-    // else setResults(r => [...r, mparsed.ok]);
+    if ('error' in mparsed) handleError(url.toString(), mparsed.error);
+    else setResults(r => [...r, mparsed.ok]);
     // }
   }
 
@@ -95,7 +95,7 @@ function SearchScreen() {
   }
 
   function close() {
-    // resync();
+    sync();
     setResults([]);
     setInput('');
   }
@@ -134,8 +134,10 @@ function SearchResultItem({
   close,
 }: SearchResult & {close: () => void}) {
   async function save() {
-    // const r2 = await saveFeed({image, name, url});
-    // if ('ok' in r2) close();
+    console.log('saving feed', {image, name, url});
+    const r2 = await saveFeed({image, name, url});
+    console.log('save res', r2);
+    if ('ok' in r2) close();
   }
 
   return (

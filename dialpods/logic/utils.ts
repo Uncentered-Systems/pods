@@ -1,17 +1,20 @@
 import {Result, RSSFeed, SearchResult, YoutubeChannel} from './types/types';
-import DOMparser from 'react-native-html-parser';
+// import DOMparser from 'react-native-html-parser';
+import DOMParser from 'advanced-html-parser';
+import {Element} from 'advanced-html-parser/types';
 
 export async function parseHTMLRes(htmls: string) {
-  const parser = new DOMparser.DOMParser();
-  const html = parser.parseFromString(htmls, 'text/html');
+  // const parser = new DOMparser.DOMParser();
+  // const html = parser.parseFromString(htmls, 'text/html');
+  const html = DOMParser.parse(htmls);
   return html;
 }
-export function parseYoutubeChannel(
-  head: HTMLHeadElement,
-): Result<SearchResult> {
+export function parseYoutubeChannel(head: Element): Result<SearchResult> {
   const linkEl = head.querySelector('link[type="application/rss+xml"]');
+  console.log('linkEl', linkEl);
   if (!linkEl) return {error: `not found`};
   const url = linkEl!.getAttribute('href');
+  console.log('url', url);
   if (!url) return {error: `not found`};
   const og = head.querySelectorAll('meta');
   let image = '';
@@ -22,12 +25,14 @@ export function parseYoutubeChannel(
     if (n === 'og:image') image = meta.getAttribute('content')!;
     if (n === 'og:title') name = meta.getAttribute('content')!;
   }
+  console.log(image, name);
   if (image && name && url) return {ok: {image, name, url}};
   else return {error: 'not found'};
 }
 export async function parseXMLRes(s: string) {
-  const parser = new DOMparser.DOMParser();
-  const xml = parser.parseFromString(s, 'text/xml');
+  const xml = DOMParser.parse(s);
+  // const parser = new DOMparser.DOMParser();
+  // const xml = parser.parseFromString(s, 'text/xml');
   return xml;
 }
 

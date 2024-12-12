@@ -2,11 +2,15 @@ import {create} from 'zustand';
 import {createJSONStorage, persist} from 'zustand/middleware';
 import {useShallow} from 'zustand/shallow';
 import type {Podcasts} from './types/types';
+import {fetchState} from './api';
 
 interface UIState {
+  url: string;
+  setURL: (url: string) => void;
   cookie: string;
   setCookie: (coki: string) => void;
   subs: Podcasts;
+  sync: () => Promise<void>;
 }
 type ProcessState = {subs: Podcasts};
 type WsMessage =
@@ -35,9 +39,15 @@ type WsMessage =
 const storeInner = create<UIState>()(
   // persist(
   (set, get) => ({
+    url: '',
+    setURL: url => set({url}),
     cookie: '',
     setCookie: cookie => set({cookie}),
     subs: {},
+    sync: async () => {
+      const res = await fetchState();
+      if ('ok' in res) set({subs: res.ok});
+    },
   }),
   //     {
   //         name: 'dial_pods_store',
