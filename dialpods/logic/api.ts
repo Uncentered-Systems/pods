@@ -3,7 +3,7 @@
 
 import * as Keychain from 'react-native-keychain';
 import {CURATOR_PROCESS, PROCESS_NAME} from './constants';
-import {Ack, AsyncRes, Podcasts, SearchResult} from './types/types';
+import {Ack, AsyncRes, Podcasts, Result, SearchResult} from './types/types';
 
 const ENDPOINT = `/${PROCESS_NAME}/api`;
 
@@ -12,7 +12,10 @@ export async function fetchState(): AsyncRes<Podcasts> {
   params.append('fetch-state', '1');
   // const res = await fetch(ENDPOINT + '?' + params.toString());
   const opts = {headers: {}, method: 'GET'};
-  return await kinodeCall(`?${params.toString()}`, opts);
+  // this endpoint returns a Result too
+  const res = await kinodeCall<Result<Podcasts>>(`?${params.toString()}`, opts);
+  const r = res as {ok: {ok: Podcasts}};
+  return r.ok;
 }
 async function kinodeCall<T>(params: string, opts: RequestInit): AsyncRes<T> {
   console.log('calling kinode', opts);
@@ -23,7 +26,7 @@ async function kinodeCall<T>(params: string, opts: RequestInit): AsyncRes<T> {
   const headers = {...opts.headers, Cookie: coki};
   const nopts = {...opts, headers};
   const res = await fetch(url + params, nopts);
-  console.log('kinode res', res);
+  // console.log('kinode res', res);
   const j = await res.json();
   console.log('kinode j', j);
   return {ok: j};

@@ -72,7 +72,8 @@ function Section({children, title}: SectionProps): React.JSX.Element {
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const [loading, setLoading] = useState(true);
-  const {cookie, setCookie, setURL} = useUIStore(state => ({
+  const {sync, cookie, setCookie, setURL} = useUIStore(state => ({
+    sync: state.sync,
     cookie: state.cookie,
     setCookie: state.setCookie,
     setURL: state.setURL,
@@ -82,15 +83,16 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
   useEffect(() => {
-    checkCookie();
+    init();
   }, []);
 
-  async function checkCookie() {
+  async function init() {
     const creds = await Keychain.getGenericPassword();
     console.log('keychain creds', creds);
     if (creds) {
       setCookie(creds.password);
       setURL(creds.username);
+      await sync();
     }
     setLoading(false);
   }
@@ -173,6 +175,7 @@ function TabNav() {
         name="Home"
         component={HomePage}
         options={{
+          headerShown: false,
           tabBarIcon: ({focused, color, size}) => {
             if (focused) return <McIcon name="home" size={30} />;
             else return <McIcon name="home-outline" size={30} />;
