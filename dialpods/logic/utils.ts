@@ -17,7 +17,6 @@ export async function parseHTMLRes(htmls: string) {
 }
 export function parseYoutubeChannel(head: Element): Result<SearchResult> {
   const linkEl = head.querySelector('link[type="application/rss+xml"]');
-  console.log('linkEl', linkEl);
   if (!linkEl) return {error: `not found`};
   const url = linkEl!.getAttribute('href');
   console.log('url', url);
@@ -25,14 +24,17 @@ export function parseYoutubeChannel(head: Element): Result<SearchResult> {
   const og = head.querySelectorAll('meta');
   let image = '';
   let name = '';
+  let description = '';
   for (const meta of og) {
-    if (image && name) break;
+    if (image && name && description) break;
     const n = meta.getAttribute('property');
+    console.log('meta yt', n);
     if (n === 'og:image') image = meta.getAttribute('content')!;
     if (n === 'og:title') name = meta.getAttribute('content')!;
+    if (n === 'og:description') description = meta.getAttribute('content')!;
   }
   console.log(image, name);
-  if (image && name && url) return {ok: {image, name, url}};
+  if (image && name && url) return {ok: {image, name, url, description}};
   else return {error: 'not found'};
 }
 export async function parseXMLRes(s: string) {
@@ -49,6 +51,7 @@ export function parseRSSFeed(
   const doc = docc.documentElement;
   const chan = doc.getElementsByTagName('channel')[0];
   const title = chan.getElementsByTagName('title')[0];
+  const description = '';
   const image = chan.getElementsByTagName('image')[0];
   const imageURL = image.getElementsByTagName('url')[0];
   try {
@@ -57,6 +60,7 @@ export function parseRSSFeed(
         name: title.textContent!,
         image: imageURL.textContent!,
         url,
+        description,
       },
     };
   } catch (_) {

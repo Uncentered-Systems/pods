@@ -39,9 +39,11 @@ import {NavigationContainer} from '@react-navigation/native';
 import LoginPage from './pages/Login.tsx';
 import HomePage from './pages/Home.tsx';
 import LibraryPage from './pages/Library.tsx';
-import SearchPage from './pages/Search.tsx';
+import ImportPage from './pages/Import.tsx';
+// import SearchPage from './pages/Search.tsx';
 import SettingsPage from './pages/Settings.tsx';
 import useUIStore from './logic/store.ts';
+import {globalStyles} from './styles.ts';
 // <pages
 
 type SectionProps = PropsWithChildren<{
@@ -175,7 +177,8 @@ export default App;
 function TabNav() {
   const Footer = createBottomTabNavigator();
   return (
-    <Footer.Navigator screenOptions={{headerShown: false}}>
+    <Footer.Navigator
+      screenOptions={{headerShown: false, sceneStyle: globalStyles.main}}>
       <Footer.Screen
         name="Home"
         component={HomePage}
@@ -188,7 +191,7 @@ function TabNav() {
       />
       <Footer.Screen
         name="Search"
-        component={SearchPage}
+        component={ImportPage}
         options={{
           tabBarIcon: ({focused, color, size}) => {
             if (focused) return <McIcon name="search-web" size={30} />;

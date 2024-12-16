@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import Fa5 from 'react-native-vector-icons/FontAwesome5';
 import {
   View,
   Text,
@@ -19,15 +20,16 @@ import useUIStore from '../logic/store';
 import type {SearchResult} from '../logic/types/types';
 import {Button} from 'react-native';
 import {saveFeed} from '../logic/api';
+import {globalStyles} from '../styles';
 
-function SearchScreen() {
+function ImportScreen() {
   const {sync} = useUIStore(state => ({
     sync: state.sync,
   }));
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState('https://www.youtube.com/@bookclubradio');
   // const [input, setInput] = useState('https://feeds.transistor.fm/acquired');
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [result, setResult] = useState<SearchResult>();
 
   console.log('search page loaded');
   function handleButton() {
@@ -61,7 +63,7 @@ function SearchScreen() {
     const mparsed = parseYoutubeChannel(head);
     console.log(mparsed, 'mparsed');
     if ('error' in mparsed) handleError(url.toString(), mparsed.error);
-    else setResults(r => [...r, mparsed.ok]);
+    else setResult(mparsed.ok);
     // }
   }
 
@@ -75,7 +77,7 @@ function SearchScreen() {
       const mparsed = parseRSSFeed(url.toString(), doc);
       console.log('mparsed', mparsed);
       if ('error' in mparsed) handleError(url.toString(), mparsed.error);
-      else setResults(r => [...r, mparsed.ok]);
+      else setResult(mparsed.ok);
     } catch (e) {
       console.log('wtf happened', e);
     }
@@ -93,7 +95,7 @@ function SearchScreen() {
 
   function close() {
     sync();
-    setResults([]);
+    setResult(undefined);
     setInput('');
   }
 
@@ -103,13 +105,12 @@ function SearchScreen() {
         <Text style={styles.navbarText}>Search</Text>
       </View>
 
+      {loading && <ActivityIndicator color="#f97316" />}
       <ScrollView style={styles.resultContainer}>
-        {results.map((result, index) => (
-          <SearchResultItem key={index} {...result} close={close} />
-        ))}
+        {result && <SearchResult {...result} close={close} />}
       </ScrollView>
 
-      <View style={styles.searchBar}>
+      <View style={{...globalStyles.input, ...globalStyles.spreadRow}}>
         <TextInput
           style={styles.input}
           placeholder="Search pod"
@@ -117,19 +118,27 @@ function SearchScreen() {
           onChangeText={setInput}
           placeholderTextColor="#666"
         />
-        {loading && <ActivityIndicator color="#f97316" />}
+        <Fa5
+          name="search"
+          size={32}
+          color={globalStyles.accent.color}
+          onPress={handleButton}
+        />
       </View>
-      <Button title="hi" onPress={handleButton} />
     </View>
   );
 }
 
-function SearchResultItem({
+function SearchResult({
   image,
   name,
+  description,
   url,
   close,
 }: SearchResult & {close: () => void}) {
+  async function openChan() {
+    // navigation.navigate("chan", {image, name, url})
+  }
   async function save() {
     console.log('saving feed', {image, name, url});
     const res = await saveFeed({image, name, url});
@@ -141,9 +150,15 @@ function SearchResultItem({
     <View style={styles.resultItem}>
       <Image source={{uri: image}} style={styles.resultImage} />
       <Text style={styles.resultName}>{name}</Text>
-      <TouchableOpacity style={styles.saveButton} onPress={save}>
-        <Text style={styles.saveButtonText}>Save</Text>
-      </TouchableOpacity>
+      <Text style={styles.resultDesc}>{description}</Text>
+      <View style={{flexDirection: 'row', gap: 36}}>
+        <TouchableOpacity style={styles.openButton} onPress={openChan}>
+          <Text style={styles.openButtonText}>Open</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.saveButton} onPress={save}>
+          <Text style={styles.saveButtonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -181,20 +196,29 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   resultItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     padding: 24,
     backgroundColor: '#d4d4d4',
     marginBottom: 1,
+    gap: 12,
   },
   resultImage: {
-    width: 32,
-    height: 32,
-    marginRight: 16,
+    width: 92,
+    height: 92,
   },
   resultName: {
-    flex: 1,
-    color: 'black',
+    fontWeight: 700,
+    fontSize: 24,
+  },
+  resultDesc: {},
+  openButton: {
+    backgroundColor: '#FFF9F2',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 4,
+  },
+  openButtonText: {
+    color: '#f97316',
   },
   saveButton: {
     backgroundColor: '#f97316',
@@ -207,4 +231,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SearchScreen;
+export default ImportScreen;

@@ -5,7 +5,12 @@ export type Podcasts = Record<string, Podcast>;
 export type Ack = null;
 export type Podcast = SearchResult;
 
-export type SearchResult = {image: string; name: string; url: string};
+export type SearchResult = {
+  image: string;
+  name: string;
+  url: string;
+  description?: string;
+};
 
 export type YoutubeChannel = {
   channel: {
@@ -14,6 +19,8 @@ export type YoutubeChannel = {
     channelId: string;
     published: string;
     title: string;
+    description: string;
+    image: string;
   };
   entries: YoutubeItem[];
 };

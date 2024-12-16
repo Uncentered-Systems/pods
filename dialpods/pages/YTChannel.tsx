@@ -23,9 +23,14 @@ import {useNavigation} from '@react-navigation/native';
 type Props = NativeStackScreenProps<LibraryStackParamList, 'YTChannel'>;
 
 function ChanPage(props: Props) {
+  const channel = props.route.params.chan.channel;
   return (
-    <View>
-      <Text>{props.route.params.chan.channel.title}</Text>
+    <View style={{padding: 10}}>
+      <View style={{flexDirection: 'row', gap: 10, alignItems: 'center'}}>
+        <View>
+          <Text style={{fontWeight: 700, fontSize: 28}}>{channel.title}</Text>
+        </View>
+      </View>
       <FlatList
         data={props.route.params.chan.entries}
         keyExtractor={item => item.id}
@@ -61,6 +66,7 @@ function EpisodePreview({ep}: {ep: YoutubeItem}) {
 export default ChanPage;
 
 const styles = StyleSheet.create({
+  channelLogo: {width: 92, height: 92},
   preview: {
     flexDirection: 'row',
     alignItems: 'center',
