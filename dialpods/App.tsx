@@ -5,6 +5,12 @@
  * @format
  */
 import * as Keychain from 'react-native-keychain';
+
+// import McIcon from '@react-native-vector-icons/material-design-icons';
+// import Fa6 from '@react-native-vector-icons/fontawesome6';
+
+import McIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import React, {useEffect, useState} from 'react';
 import type {PropsWithChildren} from 'react';
@@ -27,13 +33,12 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-import McIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Fa6 from 'react-native-vector-icons/FontAwesome6';
 import {NavigationContainer} from '@react-navigation/native';
 
 // pages
 import LoginPage from './pages/Login.tsx';
 import HomePage from './pages/Home.tsx';
+import LibraryPage from './pages/Library.tsx';
 import SearchPage from './pages/Search.tsx';
 import SettingsPage from './pages/Settings.tsx';
 import useUIStore from './logic/store.ts';
@@ -170,12 +175,11 @@ export default App;
 function TabNav() {
   const Footer = createBottomTabNavigator();
   return (
-    <Footer.Navigator>
+    <Footer.Navigator screenOptions={{headerShown: false}}>
       <Footer.Screen
         name="Home"
         component={HomePage}
         options={{
-          headerShown: false,
           tabBarIcon: ({focused, color, size}) => {
             if (focused) return <McIcon name="home" size={30} />;
             else return <McIcon name="home-outline" size={30} />;
@@ -194,7 +198,7 @@ function TabNav() {
       />
       <Footer.Screen
         name="Library"
-        component={Library}
+        component={LibraryPage}
         options={{
           tabBarIcon: ({focused, color, size}) => {
             if (focused) return <McIcon name="rss-box" size={30} />;
@@ -214,8 +218,4 @@ function TabNav() {
       />
     </Footer.Navigator>
   );
-}
-
-function Library() {
-  return <Text>Library</Text>;
 }

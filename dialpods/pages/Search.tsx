@@ -25,16 +25,13 @@ function SearchScreen() {
     sync: state.sync,
   }));
   const [loading, setLoading] = useState(false);
-  const [input, setInput] = useState('https://www.youtube.com/@bookclubradio');
+  // const [input, setInput] = useState('https://www.youtube.com/@bookclubradio');
+  const [input, setInput] = useState('https://feeds.transistor.fm/acquired');
   const [results, setResults] = useState<SearchResult[]>([]);
 
   console.log('search page loaded');
   function handleButton() {
-    // handleURL(url);
-    console.log('button pressed', input);
-    const url = new URL(input);
-    console.log('got url', url);
-    handleYouTube(input);
+    handleURL(input);
   }
   // useEffect(() => {
   //   console.log('hi!!', input);
@@ -46,10 +43,10 @@ function SearchScreen() {
   //     }
   // }, [input]);
 
-  async function handleURL(url: URL) {
+  async function handleURL(url: string) {
     console.log('handling url');
-    // if (url.hostname.endsWith('youtube.com')) handleYouTube(url);
-    // else handleRSS(url);
+    if (url.includes('youtube.com')) handleYouTube(url);
+    else handleRSS(url);
   }
 
   async function handleYouTube(url: string) {
@@ -68,20 +65,20 @@ function SearchScreen() {
     // }
   }
 
-  async function handleRSS(url: URL) {
-    // const res = await corsProxy(url);
-    // const res = await fetch(url);
-    // if (!('ok' in res)) return handleError(url.toString(), 'error fetching');
-    // const s = res.ok;
-    // if (!('HTML' in s)) return handleError('', '');
-    // const doc = await parseXMLRes(s.HTML);
-    // try {
-    //   const mparsed = parseRSSFeed(url.toString(), doc);
-    //   if ('error' in mparsed) handleError(url.toString(), mparsed.error);
-    //   else setResults(r => [...r, mparsed.ok]);
-    // } catch (e) {
-    //   console.log('wtf happened', e);
-    // }
+  async function handleRSS(url: string) {
+    const res = await fetch(url);
+    const xml = await res.text();
+    console.log('rss res', xml);
+    const doc = await parseXMLRes(xml);
+    console.log('parsed xml', doc);
+    try {
+      const mparsed = parseRSSFeed(url.toString(), doc);
+      console.log('mparsed', mparsed);
+      if ('error' in mparsed) handleError(url.toString(), mparsed.error);
+      else setResults(r => [...r, mparsed.ok]);
+    } catch (e) {
+      console.log('wtf happened', e);
+    }
   }
 
   async function handleSearch(input: string) {

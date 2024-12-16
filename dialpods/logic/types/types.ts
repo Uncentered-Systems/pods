@@ -60,3 +60,10 @@ export type RSSFeedItem = {
   enclosure: {url: string; length: number; type: string};
   // podcastInfo: { season: string; episode: string };
 };
+
+export type LongTime = {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  ms: number;
+};

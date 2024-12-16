@@ -1,7 +1,13 @@
-import {Result, RSSFeed, SearchResult, YoutubeChannel} from './types/types';
+import {
+  LongTime,
+  Result,
+  RSSFeed,
+  SearchResult,
+  YoutubeChannel,
+} from './types/types';
 // import DOMparser from 'react-native-html-parser';
 import DOMParser from 'advanced-html-parser';
-import {Element} from 'advanced-html-parser/types';
+import {Document, Element} from 'advanced-html-parser/types';
 
 export async function parseHTMLRes(htmls: string) {
   // const parser = new DOMparser.DOMParser();
@@ -36,7 +42,11 @@ export async function parseXMLRes(s: string) {
   return xml;
 }
 
-export function parseRSSFeed(url: string, doc: Document): Result<SearchResult> {
+export function parseRSSFeed(
+  url: string,
+  docc: Document,
+): Result<SearchResult> {
+  const doc = docc.documentElement;
   const chan = doc.getElementsByTagName('channel')[0];
   const title = chan.getElementsByTagName('title')[0];
   const image = chan.getElementsByTagName('image')[0];
@@ -62,7 +72,9 @@ const namespaces: any = {
   podaccess: 'https://access.acast.com/schema/1.0',
   media: 'http://search.yahoo.com/mrss/',
 };
-export function parseRSSFull(url: string, doc: Document): Result<RSSFeed> {
+export function parseRSSFull(url: string, docc: Document): Result<RSSFeed> {
+  const doc = docc.documentElement;
+  console.log(doc, 'rss doc');
   try {
     // Helper function to get namespaced elements
     const getNS = (element: Element, namespace: string, tagName: string) =>
@@ -338,4 +350,22 @@ export function durationString(secs: number): string {
         .toString()
         .padStart(2, '0')}`
     : `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+export function parseSeconds(secs: number): LongTime {
+  const hours = Math.floor(secs / 3600);
+  const minutes = Math.floor((secs % 3600) / 60);
+  const seconds = Math.floor((secs % 3600) % 60);
+  return {hours, minutes, seconds, ms: 0};
+}
+export function padTimeString(num: number): string {
+  if (num.toString().length < 2) return `0${num}`;
+  else return num.toString();
+}
+export function printLongTime(l: LongTime): string {
+  const mins = padTimeString(l.minutes);
+  const secs = padTimeString(l.seconds);
+  const base = `${mins}:${secs}`;
+  if (l.hours === 0) return base;
+  else return `${l.hours}:${base}`;
 }
