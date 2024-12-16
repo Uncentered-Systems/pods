@@ -16,12 +16,11 @@ import {
   ScrollView,
   Pressable,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
 import {LibraryStackParamList} from './Home';
-import YoutubePlayer, {
-  PLAYER_STATES,
-  YoutubeIframeRef,
-} from 'react-native-youtube-iframe';
+// import YoutubePlayer, {
+//   PLAYER_STATES,
+//   YoutubeIframeRef,
+// } from 'react-native-youtube-iframe';
 
 import Video, {OnLoadData, Orientation, VideoRef} from 'react-native-video';
 import {globalStyles} from '../styles';
@@ -40,51 +39,52 @@ export function YTPlayerPage(props: YTProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [curated, setCurated] = useState(false);
   const [curationOpen, setOpenCuration] = useState(false);
-
-  function handleSeek(secs: number) {
-    if (!playerRef.current) return;
-    playerRef.current.seekTo(secs, false);
-  }
-
-  const playerRef = useRef<YoutubeIframeRef>(null);
-  function rewind() {
-    if (!playerRef.current) return;
-    playerRef.current.seekTo(currentTime - 10, false);
-  }
-  function fforward() {
-    if (!playerRef.current) return;
-    playerRef.current.seekTo(currentTime + 10, false);
-  }
   async function bookmarkEp() {
     console.log('bookmarking TODO');
   }
 
-  function onStateChange(state: PLAYER_STATES) {
-    if (state === PLAYER_STATES.ENDED) setPlaying(false);
-    else if (state === PLAYER_STATES.PAUSED) setPlaying(false);
-    else if (state === PLAYER_STATES.PLAYING) setPlaying(false);
-    else if (state === PLAYER_STATES.UNSTARTED) setPlaying(false);
-    else if (state === PLAYER_STATES.BUFFERING) setPlaying(false);
-    else if (state === PLAYER_STATES.VIDEO_CUED) setPlaying(false);
-  }
+  // function handleSeek(secs: number) {
+  //   if (!playerRef.current) return;
+  //   playerRef.current.seekTo(secs, false);
+  // }
+
+  // const playerRef = useRef<YoutubeIframeRef>(null);
+  // // const playerRef = useRef<YoutubeIframeRef>(null);
+  // function rewind() {
+  //   if (!playerRef.current) return;
+  //   playerRef.current.seekTo(currentTime - 10, false);
+  // }
+  // function fforward() {
+  //   if (!playerRef.current) return;
+  //   playerRef.current.seekTo(currentTime + 10, false);
+  // }
+
+  // function onStateChange(state: PLAYER_STATES) {
+  //   if (state === PLAYER_STATES.ENDED) setPlaying(false);
+  //   else if (state === PLAYER_STATES.PAUSED) setPlaying(false);
+  //   else if (state === PLAYER_STATES.PLAYING) setPlaying(false);
+  //   else if (state === PLAYER_STATES.UNSTARTED) setPlaying(false);
+  //   else if (state === PLAYER_STATES.BUFFERING) setPlaying(false);
+  //   else if (state === PLAYER_STATES.VIDEO_CUED) setPlaying(false);
+  // }
 
   return (
     <View>
-      <YoutubePlayer
+      {/*<YoutubePlayer
         height={300}
         play={playing}
         videoId={ep.id}
         onChangeState={onStateChange}
         ref={playerRef}
         initialPlayerParams={{}}
-      />
+      />*/}
       <View style={globalStyles.spreadRow}>
         <Text>Channel name</Text>
         <Fa6 onPress={bookmarkEp} name="bookmark" size={32} />
       </View>
       <Text>{ep.title}</Text>
       <Text>{ep.description}</Text>
-      <PlayerControls
+      {/*<PlayerControls
         currentTime={currentTime}
         duration={duration}
         handleSeek={handleSeek}
@@ -93,7 +93,7 @@ export function YTPlayerPage(props: YTProps) {
         rewind={rewind}
         fforward={fforward}
         setOpenCuration={setOpenCuration}
-      />
+      />*/}
     </View>
   );
 }
@@ -152,6 +152,7 @@ export function RSSPlayerPage(props: RSSProps) {
     setDuration(e.duration);
   }
   function handleSeek(s: number) {
+    console.log('handle seek', s);
     if (!playerRef.current) return;
     playerRef.current.seek(s);
   }
@@ -174,6 +175,9 @@ export function RSSPlayerPage(props: RSSProps) {
         ref={playerRef}
         onProgress={handleProgress}
         onLoad={handleReady}
+        playInBackground={true} // Allow playing in background
+        ignoreSilentSwitch="ignore" // For iOS, ignore silent switch
+        playWhenInactive={true} // Cont
       />
       <View style={globalStyles.spreadRow}>
         <Text>Channel name</Text>
@@ -232,17 +236,6 @@ function PlayerControls({
   return (
     <>
       <View style={{marginTop: 30}}>
-        <Slider
-          style={{width: '100%', height: 40}}
-          minimumValue={0}
-          maximumValue={duration}
-          minimumTrackTintColor="#FFFFFF"
-          maximumTrackTintColor="#000000"
-          onValueChange={handleSeek}
-          onSlidingStart={onss}
-          onSlidingComplete={onsc}
-          disabled={false}
-        />
         <View style={globalStyles.spreadRow}>
           <Text>{printLongTime(parseSeconds(currentTime))}</Text>
           <Text>{printLongTime(parseSeconds(duration))}</Text>
