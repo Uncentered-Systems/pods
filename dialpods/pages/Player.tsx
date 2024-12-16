@@ -16,6 +16,7 @@ import {
   ScrollView,
   Pressable,
 } from 'react-native';
+import {WheelPicker} from 'react-native-infinite-wheel-picker';
 import {LibraryStackParamList} from './Home';
 // import YoutubePlayer, {
 //   PLAYER_STATES,
@@ -167,6 +168,10 @@ export function RSSPlayerPage(props: RSSProps) {
   async function bookmarkEp() {
     console.log('bookmarking TODO');
   }
+  // playback speed
+  const [selectedSpeed, setSpeed] = useState(3);
+  console.log('playback speed', speeds[selectedSpeed]);
+
   return (
     <View style={{padding: 10}}>
       <Text>Now Playing</Text>
@@ -177,7 +182,8 @@ export function RSSPlayerPage(props: RSSProps) {
         onLoad={handleReady}
         playInBackground={true} // Allow playing in background
         ignoreSilentSwitch="ignore" // For iOS, ignore silent switch
-        playWhenInactive={true} // Cont
+        playWhenInactive={true}
+        rate={speeds[selectedSpeed]}
       />
       <View style={globalStyles.spreadRow}>
         <Text>Channel name</Text>
@@ -202,6 +208,8 @@ export function RSSPlayerPage(props: RSSProps) {
           rewind={rewind}
           fforward={fforward}
           setOpenCuration={setOpenCuration}
+          selectedSpeed={selectedSpeed}
+          setSpeed={setSpeed}
         />
       )}
     </View>
@@ -217,6 +225,8 @@ function PlayerControls({
   rewind,
   fforward,
   setOpenCuration,
+  selectedSpeed,
+  setSpeed,
 }: {
   currentTime: number;
   duration: number;
@@ -226,6 +236,8 @@ function PlayerControls({
   rewind: () => void;
   fforward: () => void;
   setOpenCuration: (b: boolean) => void;
+  selectedSpeed: number;
+  setSpeed: (n: number) => void;
 }) {
   function onss(v: number) {
     console.log('sliding!', v);
@@ -236,13 +248,18 @@ function PlayerControls({
   return (
     <>
       <View style={{marginTop: 30}}>
+        <Clipper
+          duration={duration}
+          disableRange={true}
+          handleChange={() => {}}
+        />
         <View style={globalStyles.spreadRow}>
           <Text>{printLongTime(parseSeconds(currentTime))}</Text>
           <Text>{printLongTime(parseSeconds(duration))}</Text>
         </View>
       </View>
       <View style={globalStyles.spreadRow}>
-        <Text style={{fontSize: 32}}>1x</Text>
+        <PlayerSpeedSelect get={selectedSpeed} set={setSpeed} />
 
         <View style={{...globalStyles.spreadRow, gap: 16}}>
           <Fa6 name="arrow-rotate-left" size={32} onPress={rewind} />
@@ -367,4 +384,64 @@ function ClipperControls({
       </View>
     </>
   );
+}
+
+const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+function PlayerSpeedSelect({
+  get,
+  set,
+}: {
+  get: number;
+  set: (n: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      backgroundColor: '#fff',
+      alignItems: 'center',
+    },
+    selectedLayoutStyle: {
+      backgroundColor: '#00000026',
+      borderRadius: 2,
+    },
+    containerStyle: {
+      backgroundColor: '#0000001a',
+      width: 150,
+    },
+    elementTextStyle: {
+      fontSize: 24,
+    },
+  });
+  function handleChange(index: number, value: string) {
+    console.log('prev', get);
+    console.log('new', index);
+    set(index);
+    if (get !== index) setOpen(false);
+  }
+
+  if (open)
+    return (
+      <View style={styles.container}>
+        <WheelPicker
+          initialSelectedIndex={get}
+          data={speeds}
+          restElements={2}
+          elementHeight={30}
+          onChangeValue={handleChange}
+          selectedIndex={get}
+          containerStyle={styles.containerStyle}
+          selectedLayoutStyle={styles.selectedLayoutStyle}
+          elementTextStyle={styles.elementTextStyle}
+        />
+      </View>
+    );
+  else
+    return (
+      <Pressable onPress={() => setOpen(true)}>
+        <Text style={{fontSize: 24}}>{speeds[get]}x</Text>
+      </Pressable>
+    );
 }

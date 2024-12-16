@@ -31,12 +31,11 @@ import YTChannelPage from './YTChannel.tsx';
 import {YTPlayerPage, RSSPlayerPage} from './Player.tsx';
 import {parseRSSFull, parseXMLRes, parseYTFeed} from '../logic/utils.ts';
 // temp
-import {WebView} from 'react-native-webview';
 
 const Stack = createNativeStackNavigator<LibraryStackParamList>();
 
 export type LibraryStackParamList = {
-  Home: undefined;
+  HomePage: undefined;
   YTChannel: {chan: YoutubeChannel};
   Feed: {feed: RSSFeed};
   YTPlayer: {ep: YoutubeItem};
@@ -45,7 +44,7 @@ export type LibraryStackParamList = {
 function LibraryStack() {
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen name="Home" component={HomePage} />
+      <Stack.Screen name="HomePage" component={HomePage} />
       <Stack.Screen name="YTChannel" component={YTChannelPage} />
       <Stack.Screen name="Feed" component={FeedPage} />
       <Stack.Screen name="YTPlayer" component={YTPlayerPage} />
@@ -73,7 +72,6 @@ function HomePage() {
   }));
   console.log(subs, 'subs @ home');
 
-  // <WebView source={{uri: 'https://urbit.org'}} />
   if (loading) return <ActivityIndicator style={{margin: 'auto'}} />;
   else return <View></View>;
 }
