@@ -25,7 +25,11 @@ function SettingsPage() {
   }
   return (
     <View>
-      <WebView source={{uri: 'https://reactnative.dev/'}} style={{flex: 1}} />
+      <WebView
+        source={{uri: 'https://reactnative.dev/'}}
+        style={{flex: 1}}
+        onRenderProcessGone={w => console.log('webview crash', w)}
+      />
       <Button title="Logout" onPress={logout} />
     </View>
   );

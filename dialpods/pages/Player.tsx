@@ -99,6 +99,9 @@ export function YTPlayerPage(props: YTProps) {
   );
 }
 export function RSSPlayerPage(props: RSSProps) {
+  const {trackProgress} = useUIStore(state => ({
+    trackProgress: state.trackProgress,
+  }));
   const playerRef = useRef<VideoRef>(null);
   const ep = props.route.params.ep;
   // console.log({ep});
@@ -147,6 +150,17 @@ export function RSSPlayerPage(props: RSSProps) {
   }) {
     // console.log(e, 'podcast progress');
     setCurrentTime(e.currentTime);
+    const progress: any =
+      currentTime === duration ? 'Done' : {Started: currentTime};
+    const saveData = {
+      guid: ep.guid.value,
+      link: ep.enclosure.url,
+      title: ep.title,
+      published: new Date(ep.pubDate).getTime(),
+      duration,
+      progress,
+    };
+    trackProgress(saveData);
   }
   function handleReady(e: OnLoadData) {
     console.log('media ready', e);

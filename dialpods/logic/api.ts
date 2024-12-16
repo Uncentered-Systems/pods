@@ -56,6 +56,17 @@ export async function delFeed(key: string): AsyncRes<Ack> {
   };
   return kinodeCall(ENDPOINT, opts);
 }
+export async function saveProgress(): AsyncRes<Ack> {
+  const body = {WatchEpisode: key};
+  const opts = {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  };
+  return kinodeCall(ENDPOINT, opts);
+}
 
 // save to curator process
 //

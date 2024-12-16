@@ -74,3 +74,12 @@ export type LongTime = {
   seconds: number;
   ms: number;
 };
+
+export type Progress = {
+  guid: string;
+  link: string;
+  title: string;
+  published: number;
+  duration: number;
+  progress: 'Done' | 'NotStarted' | {Started: number};
+};
