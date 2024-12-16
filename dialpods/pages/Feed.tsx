@@ -19,12 +19,21 @@ import {
 } from '@react-navigation/native-stack';
 import {LibraryStackParamList} from './Home';
 import {useNavigation} from '@react-navigation/core';
+import {abbreviate} from '../logic/utils';
 type Props = NativeStackScreenProps<LibraryStackParamList, 'Feed'>;
 
 function FeedPage(props: Props) {
+  const podcast = props.route.params.feed.podcast;
+  console.log('podcast', podcast);
   return (
-    <View>
-      <Text>{props.route.params.feed.podcast.title}</Text>
+    <View style={{padding: 10}}>
+      <View style={{flexDirection: 'row', gap: 10, alignItems: 'center'}}>
+        <Image source={{uri: podcast.image}} style={styles.podcastLogo} />
+        <View>
+          <Text style={{fontWeight: 700, fontSize: 28}}>{podcast.title}</Text>
+          <Text>{podcast.description}</Text>
+        </View>
+      </View>
       <FlatList
         data={props.route.params.feed.episodes}
         keyExtractor={item => item.guid.value}
@@ -43,9 +52,11 @@ function EpisodePreview({ep}: {ep: RSSFeedItem}) {
   return (
     <Pressable onPress={openEp}>
       <View style={styles.preview}>
-        <Text>{ep.title}</Text>
-        <Text>{ep.description}</Text>
-        <Text>{new Date(ep.pubDate).toLocaleDateString()}</Text>
+        <Text style={styles.title}>{ep.title}</Text>
+        <Text>{abbreviate(ep.description, 100)}</Text>
+        <Text style={styles.date}>
+          {new Date(ep.pubDate).toLocaleDateString()}
+        </Text>
       </View>
     </Pressable>
   );
@@ -53,14 +64,15 @@ function EpisodePreview({ep}: {ep: RSSFeedItem}) {
 
 export default FeedPage;
 const styles = StyleSheet.create({
+  podcastLogo: {width: 92, height: 92},
   preview: {
-    height: 50,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
     borderWidth: 1,
     borderColor: 'black',
     padding: 2,
   },
+  title: {
+    fontWeight: 700,
+  },
+  date: {marginTop: 10},
   thumbnail: {width: 60, height: 60},
 });

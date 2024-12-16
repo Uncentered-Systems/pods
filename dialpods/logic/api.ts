@@ -13,19 +13,22 @@ export async function fetchState(): AsyncRes<Podcasts> {
   // const res = await fetch(ENDPOINT + '?' + params.toString());
   const opts = {headers: {}, method: 'GET'};
   // this endpoint returns a Result too
-  const res = await kinodeCall<Result<Podcasts>>(`?${params.toString()}`, opts);
+  const res = await kinodeCall<Result<Podcasts>>(
+    ENDPOINT + `?${params.toString()}`,
+    opts,
+  );
   const r = res as {ok: {ok: Podcasts}};
   return r.ok;
 }
-async function kinodeCall<T>(params: string, opts: RequestInit): AsyncRes<T> {
+async function kinodeCall<T>(endpoint: string, opts: RequestInit): AsyncRes<T> {
   console.log('calling kinode', opts);
   const creds = await Keychain.getGenericPassword();
   if (!creds) return {error: 'no cookie'};
-  const url = creds.username + ENDPOINT;
+  const url = creds.username + endpoint;
   const coki = creds.password;
   const headers = {...opts.headers, Cookie: coki};
   const nopts = {...opts, headers};
-  const res = await fetch(url + params, nopts);
+  const res = await fetch(url, nopts);
   // console.log('kinode res', res);
   const j = await res.json();
   console.log('kinode j', j);
@@ -40,7 +43,7 @@ export async function saveFeed(d: SearchResult): AsyncRes<Ack> {
     },
     body: JSON.stringify(body),
   };
-  return kinodeCall('', opts);
+  return kinodeCall(ENDPOINT, opts);
 }
 export async function delFeed(key: string): AsyncRes<Ack> {
   const body = {DelPod: key};
@@ -51,7 +54,7 @@ export async function delFeed(key: string): AsyncRes<Ack> {
     },
     body: JSON.stringify(body),
   };
-  return kinodeCall('', opts);
+  return kinodeCall(ENDPOINT, opts);
 }
 
 // save to curator process
@@ -79,7 +82,22 @@ export async function sendCurate(
     },
     body: JSON.stringify({SetPost: request}),
   };
-  return kinodeCall('/' + CURATOR_PROCESS + '/set-post', opts);
+  return kinodeCall(`/${CURATOR_PROCESS}/set-post`, opts);
+}
+
+export async function fetchStreams() {
+  const opts = {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json',
+    },
+    body: JSON.stringify({ListStreams: null}),
+  };
+  const res = await kinodeCall<{streams: string[]}>(
+    `/${CURATOR_PROCESS}`,
+    opts,
+  );
+  return res;
 }
 
 // fetching from podcast apps

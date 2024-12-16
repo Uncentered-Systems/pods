@@ -82,7 +82,7 @@ function LibraryPage() {
   }));
   console.log(subs, 'subs @ home');
 
-  if (loading) return <ActivityIndicator style={{margin: 'auto'}} />;
+  if (loading) return <ActivityIndicator size={82} style={{margin: 'auto'}} />;
   else
     return (
       <View>
@@ -118,7 +118,6 @@ function FeedPreview({
   const navigation =
     useNavigation<NativeStackNavigationProp<LibraryStackParamList>>();
   function handleError(s1: string, s2: string) {
-    setLoading(false);
     setError(`error: ${s2} on ${s1}`);
   }
   async function openFeedPage() {
@@ -129,12 +128,12 @@ function FeedPreview({
     const doc = await parseXMLRes(html);
     if (feed.url.includes('youtube.com')) {
       const mparsed = parseYTFeed(doc);
-      console.log(mparsed, 'parsed');
+      setLoading(false);
       if ('error' in mparsed) handleError(feed.url, mparsed.error);
       else navigation.navigate('YTChannel', {chan: mparsed.ok});
     } else {
       const mparsed = parseRSSFull(feed.url, doc);
-      console.log(mparsed, 'parsed');
+      setLoading(false);
       if ('error' in mparsed) handleError(feed.url, mparsed.error);
       else navigation.navigate('Feed', {feed: mparsed.ok});
     }

@@ -101,12 +101,10 @@ function FeedPreview({
     const doc = await parseXMLRes(html);
     if (feed.url.includes('youtube.com')) {
       const mparsed = parseYTFeed(doc);
-      console.log(mparsed, 'parsed');
       if ('error' in mparsed) handleError(feed.url, mparsed.error);
       else navigation.navigate('YTChannel', {chan: mparsed.ok});
     } else {
       const mparsed = parseRSSFull(feed.url, doc);
-      console.log(mparsed, 'parsed');
       if ('error' in mparsed) handleError(feed.url, mparsed.error);
       else navigation.navigate('Feed', {feed: mparsed.ok});
     }

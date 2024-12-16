@@ -74,7 +74,6 @@ const namespaces: any = {
 };
 export function parseRSSFull(url: string, docc: Document): Result<RSSFeed> {
   const doc = docc.documentElement;
-  console.log(doc, 'rss doc');
   try {
     // Helper function to get namespaced elements
     const getNS = (element: Element, namespace: string, tagName: string) =>
@@ -150,8 +149,23 @@ export function parseRSSFull(url: string, docc: Document): Result<RSSFeed> {
 
     // Parse episodes
     const episodes = Array.from(doc.getElementsByTagName('item')).map(item => {
+      // console.log(item, 'rss episode');
       // Get episode images
       const itunesImage = getNS(item, 'itunes', 'image');
+      const desc: Element = item.getElementsByTagName('description')[0];
+      console.log('ep desc', desc.innerHTML);
+      let description = desc.textContent;
+
+      // TODO some cdata fuckery here
+      if (desc.innerHTML.includes('CDATA')) {
+        const cdata = desc.innerHTML.replace(/<!\[CDATA\[(.*?)\]\]>/s, '$1');
+        const cdataparse = DOMParser.parse(cdata);
+        description = cdataparse.documentElement.firstChild?.textContent || '';
+      }
+      // .replace(/<[^>]*>/g, ' ')
+      // // Remove extra spaces
+      // .replace(/\s+/g, ' ')
+      // .trim();
 
       return {
         title: item.getElementsByTagName('title')[0].textContent || '',
@@ -168,8 +182,9 @@ export function parseRSSFull(url: string, docc: Document): Result<RSSFeed> {
         // author: item.getElementsByTagName('author')[0],
 
         // Episode content
-        description:
-          item.getElementsByTagName('description')[0].textContent || '',
+        // description:
+        //   item.getElementsByTagName('description')[0].textContent || '',
+        description,
 
         // content:
         //     getNS(item, 'content', 'encoded'),

@@ -2,7 +2,7 @@ import {create} from 'zustand';
 import {createJSONStorage, persist} from 'zustand/middleware';
 import {useShallow} from 'zustand/shallow';
 import type {Podcasts} from './types/types';
-import {fetchState} from './api';
+import {fetchState, fetchStreams} from './api';
 
 interface UIState {
   url: string;
@@ -11,6 +11,7 @@ interface UIState {
   setCookie: (coki: string) => void;
   subs: Podcasts;
   sync: () => Promise<void>;
+  streams: string[];
 }
 type ProcessState = {subs: Podcasts};
 type WsMessage =
@@ -44,9 +45,13 @@ const storeInner = create<UIState>()(
     cookie: '',
     setCookie: cookie => set({cookie}),
     subs: {},
+    streams: [],
     sync: async () => {
       const res = await fetchState();
       if ('ok' in res) set({subs: res.ok});
+      console.log('fetching streams');
+      const strms = await fetchStreams();
+      if ('ok' in strms) set({streams: strms.ok.streams});
     },
   }),
   //     {

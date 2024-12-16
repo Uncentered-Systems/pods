@@ -1,6 +1,8 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import Fa6 from 'react-native-vector-icons/FontAwesome6';
+import Octicon from 'react-native-vector-icons/Octicons';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+
 import {
   View,
   FlatList,
@@ -24,6 +26,10 @@ import YoutubePlayer, {
 import Video, {OnLoadData, Orientation, VideoRef} from 'react-native-video';
 import {globalStyles} from '../styles';
 import {parseSeconds, printLongTime} from '../logic/utils';
+import Clipper from '../components/Clipper';
+import {sendCurate} from '../logic/api';
+import Chips from '../components/Chip';
+import useUIStore from '../logic/store';
 
 type YTProps = NativeStackScreenProps<LibraryStackParamList, 'YTPlayer'>;
 type RSSProps = NativeStackScreenProps<LibraryStackParamList, 'RSSPlayer'>;
@@ -74,7 +80,7 @@ export function YTPlayerPage(props: YTProps) {
       />
       <View style={globalStyles.spreadRow}>
         <Text>Channel name</Text>
-        <Fa6 onPress={bookmarkEp} name="bookmark" size={48} />
+        <Fa6 onPress={bookmarkEp} name="bookmark" size={32} />
       </View>
       <Text>{ep.title}</Text>
       <Text>{ep.description}</Text>
@@ -94,13 +100,39 @@ export function YTPlayerPage(props: YTProps) {
 export function RSSPlayerPage(props: RSSProps) {
   const playerRef = useRef<VideoRef>(null);
   const ep = props.route.params.ep;
-  console.log({ep});
+  // console.log({ep});
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [curated, setCurated] = useState(false);
   const [curationOpen, setOpenCuration] = useState(false);
   // console.log({duration, currentTime});
+
+  async function curate(
+    streamName: string,
+    start_time: number,
+    end_time: number,
+  ) {
+    const content = {
+      resource: ep.enclosure.url,
+      start_time,
+      end_time,
+    };
+    const post = {
+      type: 'media',
+      content,
+    };
+    const combinedUuid = `media-${Date.now()}`;
+    const res = await sendCurate(
+      streamName,
+      'media',
+      ep.enclosure.url,
+      post,
+      combinedUuid,
+      null,
+    );
+  }
+
   useEffect(() => {
     if (!playerRef.current) return;
     if (playing) playerRef.current.resume();
@@ -113,7 +145,7 @@ export function RSSPlayerPage(props: RSSProps) {
     seekableDuration: number;
   }) {
     // console.log(e, 'podcast progress');
-    setCurrentTime(currentTime);
+    setCurrentTime(e.currentTime);
   }
   function handleReady(e: OnLoadData) {
     console.log('media ready', e);
@@ -135,25 +167,39 @@ export function RSSPlayerPage(props: RSSProps) {
     console.log('bookmarking TODO');
   }
   return (
-    <View>
+    <View style={{padding: 10}}>
+      <Text>Now Playing</Text>
       <Video
         source={{uri: ep.enclosure.url}}
         ref={playerRef}
         onProgress={handleProgress}
         onLoad={handleReady}
       />
+      <View style={globalStyles.spreadRow}>
+        <Text>Channel name</Text>
+        <Fa6 onPress={bookmarkEp} name="bookmark" size={32} />
+      </View>
       <Text>{ep.title}</Text>
       <Text>{ep.description}</Text>
-      <PlayerControls
-        currentTime={currentTime}
-        duration={duration}
-        handleSeek={handleSeek}
-        playing={playing}
-        setPlaying={setPlaying}
-        rewind={rewind}
-        fforward={fforward}
-        setOpenCuration={setOpenCuration}
-      />
+      {curationOpen ? (
+        <ClipperControls
+          currentTime={currentTime}
+          duration={duration}
+          setOpenCuration={setOpenCuration}
+          curate={curate}
+        />
+      ) : (
+        <PlayerControls
+          currentTime={currentTime}
+          duration={duration}
+          handleSeek={handleSeek}
+          playing={playing}
+          setPlaying={setPlaying}
+          rewind={rewind}
+          fforward={fforward}
+          setOpenCuration={setOpenCuration}
+        />
+      )}
     </View>
   );
 }
@@ -177,17 +223,25 @@ function PlayerControls({
   fforward: () => void;
   setOpenCuration: (b: boolean) => void;
 }) {
+  function onss(v: number) {
+    console.log('sliding!', v);
+  }
+  function onsc(v: number) {
+    console.log('slided!', v);
+  }
   return (
     <>
-      <View>
+      <View style={{marginTop: 30}}>
         <Slider
           style={{width: '100%', height: 40}}
           minimumValue={0}
           maximumValue={duration}
           minimumTrackTintColor="#FFFFFF"
           maximumTrackTintColor="#000000"
-          value={currentTime}
           onValueChange={handleSeek}
+          onSlidingStart={onss}
+          onSlidingComplete={onsc}
+          disabled={false}
         />
         <View style={globalStyles.spreadRow}>
           <Text>{printLongTime(parseSeconds(currentTime))}</Text>
@@ -195,10 +249,10 @@ function PlayerControls({
         </View>
       </View>
       <View style={globalStyles.spreadRow}>
-        <Text style={{fontSize: 48}}>1x</Text>
+        <Text style={{fontSize: 32}}>1x</Text>
 
-        <View style={globalStyles.spreadRow}>
-          <Fa6 name="arrow-rotate-left" size={48} onPress={rewind} />
+        <View style={{...globalStyles.spreadRow, gap: 16}}>
+          <Fa6 name="arrow-rotate-left" size={32} onPress={rewind} />
           {playing ? (
             <Fa6
               name="circle-pause"
@@ -212,9 +266,111 @@ function PlayerControls({
               onPress={() => setPlaying(true)}
             />
           )}
-          <Fa6 name="arrow-rotate-right" size={48} onPress={fforward} />
+          <Fa6 name="arrow-rotate-right" size={32} onPress={fforward} />
         </View>
-        <Fa6 name="scissors" size={48} onPress={() => setOpenCuration(true)} />
+        <Fa6 name="scissors" size={32} onPress={() => setOpenCuration(true)} />
+      </View>
+    </>
+  );
+}
+
+function ClipperControls({
+  currentTime,
+  duration,
+  setOpenCuration,
+  curate,
+}: {
+  currentTime: number;
+  duration: number;
+  setOpenCuration: (b: boolean) => void;
+  curate: (streamName: string, start: number, end: number) => Promise<void>;
+}) {
+  const {streams} = useUIStore(state => ({
+    streams: state.streams,
+  }));
+
+  const [error, setError] = useState('');
+  const [start, setStart] = useState(currentTime);
+  const [end, setEnd] = useState(duration);
+  const [selectedStream, setSelectedStream] = useState('');
+  const [streamInput, setInput] = useState('');
+
+  async function doCurate() {
+    if (!selectedStream && !streamInput) setError('choose a stream');
+    else {
+      const streamName = selectedStream || streamInput;
+      console.log('curating to', streamName);
+      const res = await curate(streamName, start, end);
+      console.log('curated res', res);
+    }
+  }
+  function handleChange(low: number, high: number, _byUser: boolean) {
+    setStart(low);
+    setEnd(high);
+  }
+
+  function inputStream(s: string) {
+    setSelectedStream('');
+    setInput(s);
+  }
+
+  return (
+    <>
+      <View style={{marginTop: 30}}>
+        <Clipper
+          handleChange={handleChange}
+          duration={duration}
+          low={start}
+          high={end}
+        />
+        <View style={globalStyles.spreadRow}>
+          <Text>{printLongTime(parseSeconds(start))}</Text>
+          <Text>{printLongTime(parseSeconds(end))}</Text>
+        </View>
+      </View>
+      <View style={globalStyles.spreadRow}>
+        <Text style={{fontSize: 32}}>1x</Text>
+
+        <View style={{...globalStyles.spreadRow, gap: 16}}>
+          <Fa6
+            name="angle-left"
+            size={32}
+            onPress={() => setStart(s => (s - 10 < 0 ? 0 : s - 10))}
+          />
+          <Fa6
+            name="angle-right"
+            size={32}
+            onPress={() =>
+              setStart(s => (s + 10 > duration ? duration : s + 10))
+            }
+          />
+          <Octicon name="share" size={48} onPress={doCurate} />
+          <Fa6
+            name="angle-left"
+            size={32}
+            onPress={() => setEnd(s => (s - 10 < 0 ? 0 : s - 10))}
+          />
+          <Fa6
+            name="angle-right"
+            size={32}
+            onPress={() => setEnd(s => (s + 10 > duration ? duration : s + 10))}
+          />
+        </View>
+        <Fa6 name="scissors" size={32} onPress={() => setOpenCuration(false)} />
+      </View>
+      {error && <Text style={globalStyles.error}>{error}</Text>}
+      <View>
+        <Text>Choose a Stream</Text>
+        <Chips
+          chips={streams}
+          selected={selectedStream}
+          select={setSelectedStream}
+        />
+        <TextInput
+          placeholder="new stream"
+          value={streamInput}
+          onChangeText={inputStream}
+        />
       </View>
     </>
   );
